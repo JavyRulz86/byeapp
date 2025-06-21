@@ -1,35 +1,39 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:localstorage/localstorage.dart';
 
 /// Controlador de autenticación para separar la lógica de login del widget UI.
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final LocalStorage localStorage = LocalStorage('goodbye_app_storage');
 
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
-        '1003537024990-nsopm116l0j12hvdrm0rs3cmabuuuef7.apps.googleusercontent.com',
-  );
-
-  /// Login con Google
-  Future<User?> signInWithGoogle() async {
+  /// Nueva función: Login con Google usando el id_token capturado en index.html
+  Future<User?> signInWithGoogleIdToken() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) return null;
+      await localStorage.ready; // Espera a que el storage esté listo
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      // Leemos el token guardado por index.html
+      final String? idToken = localStorage.getItem('google_id_token');
 
+      if (idToken == null || idToken.isEmpty) {
+        print('No se encontró un token válido en localStorage.');
+        return null;
+      }
+
+      // Creamos credencial con el token
       final AuthCredential credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+        idToken: idToken,
       );
 
       final UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
+
+      // Limpieza del token si se desea
+      localStorage.deleteItem('google_id_token');
+
       return userCredential.user;
     } catch (e) {
-      print("Error durante el login con Google: $e");
+      print("Error durante el login con GoogleIdToken: $e");
       return null;
     }
   }

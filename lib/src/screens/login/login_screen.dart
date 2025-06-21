@@ -16,9 +16,14 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController passwordController = TextEditingController();
 
   Future<void> _handleGoogleLogin() async {
-    User? user = await authController.signInWithGoogle();
+    // Nueva implementación: login por ID Token capturado desde index.html
+    User? user = await authController.signInWithGoogleIdToken();
     if (user != null) {
       _goToHome(user);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('No se pudo iniciar sesión con Google.')),
+      );
     }
   }
 
