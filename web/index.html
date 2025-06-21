@@ -3,7 +3,7 @@
 <head>
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self' https://*.googleapis.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://*.googleapis.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://lh3.googleusercontent.com;
     connect-src 'self' https://*.googleapis.com https://accounts.google.com https://www.googleapis.com;
@@ -13,54 +13,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <base href="$FLUTTER_BASE_HREF" />
 
-  <!-- Configuración PWA -->
+  <!-- PWA -->
   <meta name="description" content="A new Flutter project." />
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
-
-  <!-- Configuración iOS -->
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="goodbye_app" />
   <link rel="apple-touch-icon" href="icons/Icon-192.png" />
-
-  <!-- Configuración Android/Web -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#0175C2" />
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png" />
-
-  <!-- Precarga recursos críticos -->
   <link rel="preload" href="flutter_bootstrap.js" as="script" />
-
-  <!-- Meta tags para evitar warning Cross-Origin-Opener-Policy -->
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
   <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
-
-  <title>Goodbye App</title>
   <link rel="manifest" href="manifest.json" />
+  <title>Goodbye App</title>
 
-  <!-- === Google Identity Services (nuevo script requerido) === -->
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
-    // Callback que maneja el credential response al hacer login con Google
     function handleCredentialResponse(response) {
       console.log("ID Token recibido:", response.credential);
 
-      // Aquí enviás el token ID a Flutter por JS interop
       if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
         window.flutter_inappwebview.callHandler('googleSignIn', response.credential);
       } else if (window.flutterWebviewPlugin) {
-        // alternativa si usas otro plugin
         window.flutterWebviewPlugin.postMessage(response.credential);
       } else {
-        // Fallback: guardar en localStorage para que Flutter lo lea
         localStorage.setItem('google_id_token', response.credential);
       }
     }
 
-    // Al cargar la página, renderizamos el botón Google
     window.onload = function () {
       google.accounts.id.initialize({
         client_id: '1003537024990-nsopm116l0j12hvdrm0rs3cmabuuuef7.apps.googleusercontent.com',
@@ -69,18 +53,13 @@
       });
       google.accounts.id.renderButton(
         document.getElementById("google-signin-button"),
-        { theme: "outline", size: "large" }  // opciones de estilo del botón
+        { theme: "outline", size: "large" }
       );
-      // Opcional: prompt para login automático
-      // google.accounts.id.prompt();
     };
   </script>
 </head>
 <body>
-  <!-- Contenedor donde se renderiza el botón de Google -->
   <div id="google-signin-button" style="margin: 20px;"></div>
-
-  <!-- Script de Flutter con defer para no bloquear el renderizado -->
   <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>
