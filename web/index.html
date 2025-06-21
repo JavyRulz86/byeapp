@@ -2,94 +2,80 @@
 <html lang="en">
 <head>
   <meta http-equiv="Content-Security-Policy" content="default-src *; script-src 'self' https://*.googleapis.com https://*.gstatic.com 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <base href="$FLUTTER_BASE_HREF" />
 
   <!-- Configuración PWA -->
-  <meta name="description" content="A new Flutter project.">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="A new Flutter project." />
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible" />
 
   <!-- Configuración iOS -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="goodbye_app">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="goodbye_app" />
+  <link rel="apple-touch-icon" href="icons/Icon-192.png" />
 
   <!-- Configuración Android/Web -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0175C2">
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0175C2" />
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <!-- Precarga recursos críticos -->
-  <link rel="preload" href="flutter_bootstrap.js" as="script">
+  <link rel="preload" href="flutter_bootstrap.js" as="script" />
 
   <!-- Meta tags para evitar warning Cross-Origin-Opener-Policy -->
-  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
-  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
+  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
+  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
 
   <title>Goodbye App</title>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json" />
 
-  <!-- === Google API Client === -->
+  <!-- === Google API Client (legacy, opcional, puede quedar para otras APIs) === -->
   <script src="https://apis.google.com/js/api.js"></script>
 
   <!-- === Google Identity Services (nuevo script requerido) === -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
-    // Estado de inicialización global
-    let gapiInitialized = false;
+    // Callback que maneja el credential response al hacer login con Google
+    function handleCredentialResponse(response) {
+      console.log("ID Token recibido:", response.credential);
 
-    // Función para cargar e inicializar gapi.client
-    function loadGapiClient() {
-      return new Promise((resolve, reject) => {
-        gapi.load('client', {
-          callback: () => {
-            gapi.client.init({
-              clientId: '1003537024990-nsopm116l0j12hvdrm0rs3cmabuuuef7.apps.googleusercontent.com',
-              scope: 'profile email'
-            }).then(() => {
-              console.log("✅ gapi.client initialized");
-              gapiInitialized = true;
-              resolve();
-            }).catch((e) => {
-              console.error("❌ Error initializing gapi.client:", e);
-              reject(e);
-            });
-          },
-          onerror: () => reject('Error loading gapi.client'),
-          timeout: 5000,
-          ontimeout: () => reject('Timeout loading gapi.client')
-        });
-      });
+      // Aquí enviás el token ID a Flutter por JS interop
+      if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
+        window.flutter_inappwebview.callHandler('googleSignIn', response.credential);
+      } else if (window.flutterWebviewPlugin) {
+        // alternativa si usas otro plugin
+        window.flutterWebviewPlugin.postMessage(response.credential);
+      } else {
+        // Fallback: guardar en localStorage para que Flutter lo lea
+        localStorage.setItem('google_id_token', response.credential);
+      }
     }
 
-    // Cargar gapi una vez que la página completa haya cargado (incluido Flutter)
-    window.addEventListener('load', () => {
-      loadGapiClient().catch(err => {
-        console.error('No se pudo inicializar gapi.client:', err);
+    // Al cargar la página, renderizamos el botón Google
+    window.onload = function () {
+      google.accounts.id.initialize({
+        client_id: '1003537024990-nsopm116l0j12hvdrm0rs3cmabuuuef7.apps.googleusercontent.com',
+        callback: handleCredentialResponse,
+        ux_mode: 'popup'
       });
-    });
-
-    // === Funciones globales para usar desde Flutter ===
-
-    // Verifica si gapi está listo
-    window.isGapiReady = () => gapiInitialized;
-
-    // Solicitud segura usando gapi.client.request
-    window.makeGapiRequest = (params) => {
-      if (!gapiInitialized) {
-        console.error("❌ Intento de usar gapi.client antes de estar listo.");
-        return Promise.reject("gapi no está inicializado.");
-      }
-      return gapi.client.request(params);
+      google.accounts.id.renderButton(
+        document.getElementById("google-signin-button"),
+        { theme: "outline", size: "large" }  // opciones de estilo del botón
+      );
+      // Opcional: prompt para login automático
+      // google.accounts.id.prompt();
     };
   </script>
 </head>
 <body>
+  <!-- Contenedor donde se renderiza el botón de Google -->
+  <div id="google-signin-button" style="margin: 20px;"></div>
+
   <!-- Script de Flutter con defer para no bloquear el renderizado -->
   <script src="flutter_bootstrap.js" defer></script>
 </body>
