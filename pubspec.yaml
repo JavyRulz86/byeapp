@@ -9,10 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  
+
   # Firebase Core (versión unificada)
   firebase_core: ^3.14.0
-  
+
   # Servicios de Firebase (versiones compatibles con core 3.x)
   firebase_auth: ^5.6.0
   firebase_analytics: ^11.5.0
@@ -44,9 +44,7 @@ dependencies:
   path_provider: ^2.1.2
   url_launcher: ^6.3.0
   logger: ^2.0.0
-  dependencies:
   flutter_dotenv: ^5.1.0
-
 
 dev_dependencies:
   flutter_test:

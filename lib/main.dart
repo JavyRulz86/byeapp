@@ -8,9 +8,8 @@ import 'package:goodbye_app/src/screens/login/login_screen.dart';
 
 // Configuración global
 final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
-final FirebaseAnalyticsObserver observer = FirebaseAnalyticsObserver(
-  analytics: analytics,
-);
+final FirebaseAnalyticsObserver observer =
+    FirebaseAnalyticsObserver(analytics: analytics);
 final Logger logger = Logger(
   printer: PrettyPrinter(
     methodCount: 2,
@@ -78,11 +77,11 @@ void main() async {
   try {
     await _initializeFirebase();
     await _logAppStart();
-    runApp(GoodbyeApp());
+    runApp(const GoodbyeApp());
   } catch (e, stack) {
     logger.e('Error crítico en la inicialización', error: e, stackTrace: stack);
     FirebaseCrashlytics.instance.recordError(e, stack);
-    runApp(ErrorApp());
+    runApp(const ErrorApp());
   }
 }
 
@@ -95,14 +94,12 @@ class GoodbyeApp extends StatelessWidget {
       title: 'GoodBye App',
       debugShowCheckedModeBanner: false,
       theme: _buildAppTheme(),
-      home: LoginScreen(),
+      home: const LoginScreen(),
       navigatorObservers: [observer],
       builder: (context, child) {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTap: () {
-            FocusManager.instance.primaryFocus?.unfocus();
-          },
+          onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: child,
         );
       },
@@ -124,10 +121,8 @@ class GoodbyeApp extends StatelessWidget {
       ),
       inputDecorationTheme: InputDecorationTheme(
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
     );
   }
@@ -173,9 +168,7 @@ class ErrorApp extends StatelessWidget {
                       onPressed: () => main(),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                            horizontal: 24, vertical: 12),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -196,7 +189,7 @@ class ErrorApp extends StatelessWidget {
 
   void _sendErrorReport() {
     logger.i('Reporte de error enviado');
-    // Aquí podrías implementar el envío de reportes por email
+    // Implementar reporte si lo necesitás
   }
 }
 
@@ -211,10 +204,8 @@ extension AnalyticsLogging on BuildContext {
     }
   }
 
-  Future<void> logCustomEvent(
-    String name, {
-    Map<String, Object>? parameters,
-  }) async {
+  Future<void> logCustomEvent(String name,
+      {Map<String, Object>? parameters}) async {
     try {
       await analytics.logEvent(name: name, parameters: parameters);
       logger.d('Evento registrado: $name');
