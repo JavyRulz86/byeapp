@@ -1,64 +1,56 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:localstorage/localstorage.dart';
 
-/// Controlador de autenticación para separar la lógica de login del widget UI.
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final LocalStorage localStorage = LocalStorage('goodbye_app_storage');
+  final LocalStorage _storage = LocalStorage('goodbye_app_storage');
 
-  /// Nueva función: Login con Google usando el id_token capturado en index.html
+  /// Login con Google usando el ID Token (GIS moderno)
   Future<User?> signInWithGoogleIdToken() async {
     try {
-      await localStorage.ready; // Espera a que el storage esté listo
+      await _storage.ready;
 
-      // Leemos el token guardado por index.html
-      final String? idToken = localStorage.getItem('google_id_token');
-
+      final String? idToken = _storage.getItem('google_id_token');
       if (idToken == null || idToken.isEmpty) {
-        print('No se encontró un token válido en localStorage.');
-        return null;
+        throw Exception('No Google ID Token found in storage');
       }
 
-      // Creamos credencial con el token
-      final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: idToken,
-      );
+      final credential = GoogleAuthProvider.credential(idToken: idToken);
+      final userCredential = await _auth.signInWithCredential(credential);
 
-      final UserCredential userCredential = await _auth.signInWithCredential(
-        credential,
-      );
-
-      // Limpieza del token si se desea
-      localStorage.deleteItem('google_id_token');
-
+      _storage.deleteItem('google_id_token'); // Limpieza segura
       return userCredential.user;
     } catch (e) {
-      print("Error durante el login con GoogleIdToken: $e");
-      return null;
+      print('Google SignIn Error: ${e.toString()}');
+      rethrow; // Permite manejar el error en el UI
     }
   }
 
-  /// Login con correo y contraseña
+  /// Login con email/password
   Future<User?> signInWithEmail(String email, String password) async {
     try {
-      final UserCredential userCredential = await _auth
-          .signInWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _auth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
       return userCredential.user;
     } catch (e) {
-      print("Error durante el login con correo: $e");
-      return null;
+      print('Email SignIn Error: ${e.toString()}');
+      rethrow;
     }
   }
 
-  /// Registro con correo y contraseña
+  /// Registro con email/password
   Future<User?> registerWithEmail(String email, String password) async {
     try {
-      final UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
       return userCredential.user;
     } catch (e) {
-      print("Error durante el registro con correo: $e");
-      return null;
+      print('Registration Error: ${e.toString()}');
+      rethrow;
     }
   }
 }

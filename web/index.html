@@ -1,65 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' https://*.googleapis.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com;
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data: https://*.googleapis.com https://*.gstatic.com https://accounts.google.com https://www.gstatic.com;
+    default-src 'self' https://*.googleapis.com https://*.gstatic.com;
+    script-src 'self' 'unsafe-inline' https://accounts.google.com https://*.googleapis.com https://*.gstatic.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' data: https://*.googleapis.com https://*.gstatic.com https://lh3.googleusercontent.com;
-    connect-src 'self' https://*.googleapis.com https://accounts.google.com https://www.googleapis.com;
+    img-src 'self' data: https://*.googleusercontent.com;
+    connect-src 'self' https://*.googleapis.com;
     frame-src https://accounts.google.com;
   ">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <base href="$FLUTTER_BASE_HREF" />
+  <base href="$FLUTTER_BASE_HREF">
 
-  <!-- PWA -->
-  <meta name="description" content="A new Flutter project." />
-  <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="goodbye_app" />
-  <link rel="apple-touch-icon" href="icons/Icon-192.png" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#0175C2" />
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link rel="preload" href="flutter_bootstrap.js" as="script" />
-  <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
-  <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
-  <link rel="manifest" href="manifest.json" />
+  <!-- PWA Config -->
+  <meta name="theme-color" content="#0175C2">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.png">
   <title>Goodbye App</title>
 
-  <!-- Google Identity Services -->
+  <!-- Google Identity Services (Moderno) -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <script>
     function handleCredentialResponse(response) {
-      console.log("ID Token recibido:", response.credential);
-
-      if (window.flutter_inappwebview && window.flutter_inappwebview.callHandler) {
-        window.flutter_inappwebview.callHandler('googleSignIn', response.credential);
-      } else if (window.flutterWebviewPlugin) {
-        window.flutterWebviewPlugin.postMessage(response.credential);
-      } else {
-        localStorage.setItem('google_id_token', response.credential);
+      console.log("Google ID Token recibido:", response.credential);
+      
+      // Prioridad 1: Flutter WebView
+      if (window.flutter_inappwebview?.callHandler) {
+        flutter_inappwebview.callHandler('googleSignIn', response.credential);
+        return;
+      }
+      
+      // Prioridad 2: Almacenamiento local (para web estándar)
+      localStorage.setItem('google_id_token', response.credential);
+      
+      // Opcional: Recarga para aplicaciones SPA
+      if (!window.flutterWebviewPlugin) {
+        window.location.reload();
       }
     }
 
-    window.onload = function () {
-      google.accounts.id.initialize({
-        client_id: '1003537024990-nsopm116l0j12hvdrm0rs3cmabuuuef7.apps.googleusercontent.com',
-        callback: handleCredentialResponse,
-        ux_mode: 'popup'
-      });
-      google.accounts.id.renderButton(
-        document.getElementById("google-signin-button"),
-        { theme: "outline", size: "large" }
-      );
-    };
+    function initializeGoogleSignIn() {
+      try {
+        google.accounts.id.initialize({
+          client_id: '1003537024990-nsopm116l0j12hvdrm0rs3cmabuuuef7.apps.googleusercontent.com',
+          callback: handleCredentialResponse,
+          ux_mode: 'popup',
+          auto_select: false
+        });
+
+        google.accounts.id.renderButton(
+          document.getElementById("google-signin-button"),
+          { 
+            type: "standard",
+            theme: "outline", 
+            size: "large",
+            text: "signin_with",
+            shape: "rectangular"
+          }
+        );
+
+        // Opcional: Muestra el One Tap UI
+        // google.accounts.id.prompt();
+      } catch (error) {
+        console.error("Error inicializando Google Sign-In:", error);
+      }
+    }
+
+    // Inicialización segura
+    window.addEventListener('load', initializeGoogleSignIn);
   </script>
 </head>
 <body>
-  <div id="google-signin-button" style="margin: 20px;"></div>
+  <div id="google-signin-button"></div>
   <script src="flutter_bootstrap.js" defer></script>
 </body>
 </html>

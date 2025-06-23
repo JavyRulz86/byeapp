@@ -11,55 +11,50 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final authController = AuthController();
-
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
   Future<void> _handleGoogleLogin() async {
-    // Nueva implementación: login por ID Token capturado desde index.html
-    User? user = await authController.signInWithGoogleIdToken();
-    if (user != null) {
-      _goToHome(user);
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('No se pudo iniciar sesión con Google.')),
-      );
+    try {
+      User? user = await authController.signInWithGoogleIdToken();
+      if (user != null) {
+        _goToHome(user);
+      } else {
+        _showErrorSnackbar('No se pudo iniciar sesión con Google');
+      }
+    } catch (e) {
+      _showErrorSnackbar('Error: ${e.toString()}');
     }
   }
 
   Future<void> _handleEmailLogin() async {
-    User? user = await authController.signInWithEmail(
-      emailController.text.trim(),
-      passwordController.text,
-    );
-    if (user != null) {
-      _goToHome(user);
+    try {
+      User? user = await authController.signInWithEmail(
+        emailController.text.trim(),
+        passwordController.text,
+      );
+      if (user != null) _goToHome(user);
+    } catch (e) {
+      _showErrorSnackbar('Credenciales incorrectas');
     }
   }
 
   Future<void> _handleEmailRegister() async {
     if (emailController.text.isEmpty || passwordController.text.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Ingrese un correo válido y una contraseña de al menos 6 caracteres.',
-          ),
-        ),
+      _showErrorSnackbar(
+        'Ingrese un correo válido y contraseña de al menos 6 caracteres',
       );
       return;
     }
 
-    User? user = await authController.registerWithEmail(
-      emailController.text.trim(),
-      passwordController.text,
-    );
-
-    if (user != null) {
-      _goToHome(user);
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error al registrarse')));
+    try {
+      User? user = await authController.registerWithEmail(
+        emailController.text.trim(),
+        passwordController.text,
+      );
+      if (user != null) _goToHome(user);
+    } catch (e) {
+      _showErrorSnackbar('Error al registrarse: ${e.toString()}');
     }
   }
 
@@ -68,6 +63,12 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
       MaterialPageRoute(builder: (context) => HomeScreen(user: user)),
     );
+  }
+
+  void _showErrorSnackbar(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -79,28 +80,24 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Image.asset('assets/logo.png', height: 150),
-            SizedBox(height: 40),
-
+            const SizedBox(height: 40),
             _buildGradientButton(
               'Iniciar sesión con Google',
               _handleGoogleLogin,
             ),
-            SizedBox(height: 20),
-
+            const SizedBox(height: 20),
             _buildTextField(emailController, 'Correo Electrónico'),
             _buildTextField(
               passwordController,
               'Contraseña',
               obscureText: true,
             ),
-            SizedBox(height: 20),
-
+            const SizedBox(height: 20),
             _buildGradientButton(
               'Iniciar sesión con Correo Electrónico',
               _handleEmailLogin,
             ),
-            SizedBox(height: 15),
-
+            const SizedBox(height: 15),
             _buildGradientButton(
               'Registrarse con Correo Electrónico',
               _handleEmailRegister,
@@ -117,11 +114,11 @@ class _LoginScreenState extends State<LoginScreen> {
       borderRadius: BorderRadius.circular(30),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 15),
+        padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
+          gradient: const LinearGradient(
             colors: [
-              const Color.fromARGB(255, 51, 129, 244),
+              Color.fromARGB(255, 51, 129, 244),
               Colors.lightBlue,
               Colors.cyan,
               Colors.white,
@@ -130,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(30),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black26,
               blurRadius: 6,
@@ -158,7 +155,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool obscureText = false,
   }) {
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: Colors.blue.shade50,
         borderRadius: BorderRadius.circular(30),
@@ -166,7 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
           BoxShadow(
             color: Colors.black.withAlpha(64),
             blurRadius: 8,
-            offset: Offset(0, 4),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -180,7 +177,10 @@ class _LoginScreenState extends State<LoginScreen> {
             color: Colors.blueAccent,
           ),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 15,
+            horizontal: 20,
+          ),
         ),
       ),
     );

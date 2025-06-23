@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# 🔒 ENV files (credenciales privadas)
+.env
+.env.*
