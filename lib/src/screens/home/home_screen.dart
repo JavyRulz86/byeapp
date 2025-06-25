@@ -60,14 +60,12 @@ class _HomeScreenState extends State<HomeScreen>
   Future<Duration?> _getVideoDuration(PlatformFile file) async {
     try {
       if (kIsWeb) {
-        // Corrección: Crear Blob con la lista convertida a dynamic
         final blob = web.Blob([file.bytes!] as dynamic);
         final videoUrl = web.URL.createObjectURL(blob);
         _videoController = VideoPlayerController.networkUrl(
           Uri.parse(videoUrl),
         );
       } else {
-        // Implementación para móvil/desktop
         _videoController = VideoPlayerController.file(File(file.path!));
       }
 
@@ -92,13 +90,12 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _pickAndUploadFile(String type, String category) async {
     try {
-      // Límites configurados
-      const maxImageSize = 50 * 1024 * 1024; // 50 MB para imágenes
-      const maxAudioSize = 30 * 1024 * 1024; // 30 MB para audio
-      const maxVideoDuration = Duration(seconds: 71); // 1 min 11 seg
-      const maxVideoSize = 100 * 1024 * 1024; // 100 MB para video
-      const maxTextLines = 1000; // 1000 líneas para texto
-      const maxTextSize = 5 * 1024 * 1024; // 5 MB para texto
+      const maxImageSize = 50 * 1024 * 1024;
+      const maxAudioSize = 30 * 1024 * 1024;
+      const maxVideoDuration = Duration(seconds: 71);
+      const maxVideoSize = 100 * 1024 * 1024;
+      const maxTextLines = 1000;
+      const maxTextSize = 5 * 1024 * 1024;
 
       FilePickerResult? result;
       final isWeb = kIsWeb;
@@ -133,7 +130,6 @@ class _HomeScreenState extends State<HomeScreen>
             return;
         }
       } catch (e) {
-        // Fallback si falla la detección de plataforma
         result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: _getAllowedExtensions(type),
@@ -145,7 +141,6 @@ class _HomeScreenState extends State<HomeScreen>
       final file = result.files.first;
       if (file.path == null && !isWeb) return;
 
-      // Validaciones antes de subir
       if (type == 'Foto' && file.size > maxImageSize) {
         throw Exception('Las imágenes no pueden superar los 50MB');
       }
@@ -178,7 +173,6 @@ class _HomeScreenState extends State<HomeScreen>
         }
       }
 
-      // Mostrar progreso
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -200,16 +194,14 @@ class _HomeScreenState extends State<HomeScreen>
         final fileName = file.name;
         final fileExtension = fileName.split('.').last.toLowerCase();
 
-        // Validar extensión
         if (!_getAllowedExtensions(type).contains(fileExtension)) {
           throw Exception('Tipo de archivo no válido para $type');
         }
 
         Reference ref = FirebaseStorage.instance.ref().child(
-          'uploads/${widget.user.uid}/$category/$type/$fileName',
-        );
+              'uploads/${widget.user.uid}/$category/$type/$fileName',
+            );
 
-        // Subir archivo
         if (isWeb) {
           final bytes = file.bytes;
           if (bytes == null) throw Exception('No se pudo leer el archivo');
@@ -232,7 +224,7 @@ class _HomeScreenState extends State<HomeScreen>
           'createdAt': FieldValue.serverTimestamp(),
         });
 
-        Navigator.of(context).pop(); // Cerrar diálogo de progreso
+        Navigator.of(context).pop();
         _showShareOptions(publicKey, downloadUrl);
       } catch (e) {
         Navigator.of(context).pop();
@@ -319,8 +311,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _shareViaEmail(String publicKey, String downloadUrl) async {
     final subject = 'Te comparto un recuerdo en ByeApp';
-    final body =
-        '''
+    final body = '''
 Puedes acceder a este recuerdo usando la siguiente llave en ByeApp:
 $publicKey
 
@@ -367,91 +358,103 @@ $downloadUrl
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PerfilScreen(user: widget.user),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.fromARGB(255, 240, 248, 255),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => PerfilScreen(user: widget.user),
+                              ),
+                            );
+                          },
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundColor: Colors.blue.shade50,
+                            child: Icon(
+                              Icons.account_circle,
+                              size: 80,
+                              color: Colors.blueGrey[700],
                             ),
-                          );
-                        },
-                        child: CircleAvatar(
-                          radius: 60,
-                          backgroundColor: Colors.blue[100],
-                          child: Icon(
-                            Icons.account_circle,
-                            size: 80,
-                            color: Colors.blueGrey[700],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        userName,
-                        style: GoogleFonts.poppins(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w600,
-                          color: const Color.fromARGB(255, 51, 129, 244),
+                        const SizedBox(height: 16),
+                        Text(
+                          userName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: const Color.fromARGB(255, 51, 129, 244),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      _buildGradientButton(
-                        'Say Bye',
-                        () {
-                          setState(() {
-                            showSayByeOptions = !showSayByeOptions;
-                            if (!showSayByeOptions) {
-                              expandedOptions.updateAll((key, value) => false);
-                            }
-                          });
-                        },
-                        gradientColors: [Color(0xFF337DFF), Color(0xFFFF6E1F)],
-                      ),
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 300),
-                        child: showSayByeOptions
-                            ? Column(
-                                key: const ValueKey('sayByeOptions'),
-                                children: [
-                                  const SizedBox(height: 12),
-                                  _buildExpandableCategory("Express"),
-                                  const SizedBox(height: 8),
-                                  _buildExpandableCategory("Programed"),
-                                  const SizedBox(height: 8),
-                                  _buildExpandableCategory("Last Vibe"),
-                                ],
-                              )
-                            : SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 20),
-                      _buildGradientButton(
-                        'Up Vibe',
-                        () {
-                          _controller.goToUpVibe(context, widget.user);
-                        },
-                        gradientColors: [Color(0xFF337DFF), Color(0xFFFF6E1F)],
-                      ),
-                    ],
+                        const SizedBox(height: 40),
+                        _buildGradientButton(
+                          'Say Bye',
+                          () {
+                            setState(() {
+                              showSayByeOptions = !showSayByeOptions;
+                              if (!showSayByeOptions) {
+                                expandedOptions
+                                    .updateAll((key, value) => false);
+                              }
+                            });
+                          },
+                        ),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 300),
+                          child: showSayByeOptions
+                              ? Column(
+                                  key: const ValueKey('sayByeOptions'),
+                                  children: [
+                                    const SizedBox(height: 12),
+                                    _buildExpandableCategory("Express"),
+                                    const SizedBox(height: 8),
+                                    _buildExpandableCategory("Programed"),
+                                    const SizedBox(height: 8),
+                                    _buildExpandableCategory("Last Vibe"),
+                                  ],
+                                )
+                              : SizedBox.shrink(),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildGradientButton(
+                          'Up Vibe',
+                          () {
+                            // Corregido: Se asume que el método correcto es navigateToUpVibe
+                            _controller.goToUpVibe(context, widget.user);
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: _buildGradientButton('Log Out', () {
-                  _controller.logout(context);
-                }, gradientColors: [Colors.redAccent, Colors.red]),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: _buildGradientButton('Log Out', () {
+                    _controller.logout(context);
+                  }, isLogout: true),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -469,6 +472,8 @@ $downloadUrl
           decoration: InputDecoration(
             hintText: 'Pega la llave compartida aquí',
             border: OutlineInputBorder(),
+            filled: true,
+            fillColor: Colors.blue.shade50,
           ),
           onChanged: (value) => _enteredKey = value,
         ),
@@ -551,28 +556,32 @@ $downloadUrl
   Widget _buildGradientButton(
     String text,
     VoidCallback onPressed, {
-    required List<Color> gradientColors,
+    bool isLogout = false,
   }) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(30),
-      splashColor: Colors.orangeAccent.withAlpha((0.3 * 255).toInt()),
-      highlightColor: Colors.orangeAccent.withAlpha((0.15 * 255).toInt()),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: gradientColors,
+            colors: isLogout
+                ? [Colors.redAccent, Colors.red]
+                : [
+                    Color.fromARGB(255, 51, 129, 244),
+                    Colors.lightBlue,
+                    Colors.cyan,
+                  ],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(30),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
-              color: gradientColors.last.withAlpha((0.6 * 255).toInt()),
-              blurRadius: 10,
-              offset: Offset(0, 5),
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(0, 3),
             ),
           ],
         ),
@@ -583,13 +592,6 @@ $downloadUrl
               color: Colors.white,
               fontSize: 16,
               fontWeight: FontWeight.w600,
-              shadows: [
-                Shadow(
-                  color: Colors.black26,
-                  offset: Offset(1, 1),
-                  blurRadius: 2,
-                ),
-              ],
             ),
           ),
         ),
@@ -603,10 +605,14 @@ $downloadUrl
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Colors.blue.shade50,
         borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3)),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 6,
+            offset: Offset(0, 3),
+          ),
         ],
       ),
       child: Column(
@@ -628,14 +634,14 @@ $downloadUrl
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blueAccent,
+                          color: const Color.fromARGB(255, 51, 129, 244),
                         ),
                       ),
                     ),
                   ),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    color: Colors.blueAccent,
+                    color: const Color.fromARGB(255, 51, 129, 244),
                   ),
                 ],
               ),
@@ -703,7 +709,7 @@ class MediaOptionButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(30),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
@@ -714,19 +720,19 @@ class MediaOptionButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(iconData, color: Colors.blueAccent),
+            Icon(iconData, color: const Color.fromARGB(255, 51, 129, 244)),
             const SizedBox(width: 12),
             Text(
               label,
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
-                color: Colors.blueAccent,
+                color: const Color.fromARGB(255, 51, 129, 244),
               ),
             ),
           ],
         ),
       ),
     );
-  }
-}
+  } //
+} //

@@ -51,7 +51,7 @@ class HomeController {
     BuildContext context, {
     required String routeName,
     required User user,
-    Map<String, dynamic>? arguments, // ✅ tipado corregido
+    Map<String, dynamic>? arguments,
   }) async {
     try {
       if (!context.mounted) return;
@@ -82,6 +82,7 @@ class HomeController {
   }
 
   // Métodos específicos con documentación
+
   /// Navega a la pantalla Express con validación de usuario
   void goToExpress(BuildContext context, User user) {
     _validateUser(
@@ -95,6 +96,14 @@ class HomeController {
     _trackNavigation(
       'programed',
       () => navigateTo(context, routeName: '/programed', user: user),
+    );
+  }
+
+  /// Navega a la pantalla UpVibe con validación y tracking
+  void goToUpVibe(BuildContext context, User user) {
+    _trackNavigation(
+      'upvibe',
+      () => navigateTo(context, routeName: '/upvibe', user: user),
     );
   }
 

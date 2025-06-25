@@ -1,28 +1,44 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:localstorage/localstorage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final LocalStorage _storage = LocalStorage('goodbye_app_storage');
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  late final SharedPreferences _prefs;
 
-  /// Login con Google usando el ID Token (GIS moderno)
+  AuthController() {
+    _initPreferences();
+  }
+
+  Future<void> _initPreferences() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
+
+  /// Login con Google
   Future<User?> signInWithGoogleIdToken() async {
     try {
-      await _storage.ready;
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
 
-      final String? idToken = _storage.getItem('google_id_token');
-      if (idToken == null || idToken.isEmpty) {
-        throw Exception('No Google ID Token found in storage');
-      }
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
-      final credential = GoogleAuthProvider.credential(idToken: idToken);
+      final credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken,
+        accessToken: googleAuth.accessToken,
+      );
+
       final userCredential = await _auth.signInWithCredential(credential);
 
-      _storage.deleteItem('google_id_token'); // Limpieza segura
+      if (googleAuth.idToken != null) {
+        await _prefs.setString('google_id_token', googleAuth.idToken!);
+      }
+
       return userCredential.user;
     } catch (e) {
-      print('Google SignIn Error: ${e.toString()}');
-      rethrow; // Permite manejar el error en el UI
+      print('Google SignIn Error: $e');
+      rethrow;
     }
   }
 
@@ -33,9 +49,12 @@ class AuthController {
         email: email.trim(),
         password: password,
       );
+
+      await _prefs.setString('user_email', email.trim());
+
       return userCredential.user;
     } catch (e) {
-      print('Email SignIn Error: ${e.toString()}');
+      print('Email SignIn Error: $e');
       rethrow;
     }
   }
@@ -47,9 +66,26 @@ class AuthController {
         email: email.trim(),
         password: password,
       );
+
+      await _prefs.setString('user_email', email.trim());
+
       return userCredential.user;
     } catch (e) {
-      print('Registration Error: ${e.toString()}');
+      print('Registration Error: $e');
+      rethrow;
+    }
+  }
+
+  /// Cerrar sesión
+  Future<void> signOut() async {
+    try {
+      await _auth.signOut();
+      await _googleSignIn.signOut();
+
+      await _prefs.remove('google_id_token');
+      await _prefs.remove('user_email');
+    } catch (e) {
+      print('SignOut Error: $e');
       rethrow;
     }
   }

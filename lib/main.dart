@@ -152,11 +152,11 @@ class ErrorApp extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'No pudimos iniciar la aplicación correctamente. '
                   'Por favor, inténtalo nuevamente.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                 ),
                 const SizedBox(height: 32),
                 Row(

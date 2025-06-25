@@ -5,6 +5,8 @@ import 'package:goodbye_app/src/controllers/login_controller.dart';
 import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({Key? key}) : super(key: key); // Constructor const añadido
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -66,9 +68,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
