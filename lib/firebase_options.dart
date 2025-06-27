@@ -4,16 +4,6 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Default [FirebaseOptions] for use with your Firebase apps.
-///
-/// Example:
-/// ```dart
-/// import 'firebase_options.dart';
-/// // ...
-/// await Firebase.initializeApp(
-///   options: DefaultFirebaseOptions.currentPlatform,
-/// );
-/// ```
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -49,15 +39,42 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBPGPtMey7IARjQE7Wouu5B9Ioyl61h_j0',
-    appId: '1:1003537024990:web:77b8d3170c23ba296f3f4f',
-    messagingSenderId: '1003537024990',
-    projectId: 'goodbye-ae882',
-    authDomain: 'goodbye-ae882.firebaseapp.com',
-    storageBucket: 'goodbye-ae882.firebasestorage.app',
-    measurementId: 'G-LVXCN2PE2H',
-  );
+  // Variables leídas desde dart-define para web:
+  static FirebaseOptions get web {
+    const apiKey = String.fromEnvironment('FIREBASE_API_KEY', defaultValue: '');
+    const appId = String.fromEnvironment('FIREBASE_APP_ID', defaultValue: '');
+    const messagingSenderId = String.fromEnvironment(
+        'FIREBASE_MESSAGING_SENDER_ID',
+        defaultValue: '');
+    const projectId =
+        String.fromEnvironment('FIREBASE_PROJECT_ID', defaultValue: '');
+    const authDomain =
+        String.fromEnvironment('FIREBASE_AUTH_DOMAIN', defaultValue: '');
+    const storageBucket =
+        String.fromEnvironment('FIREBASE_STORAGE_BUCKET', defaultValue: '');
+    const measurementId =
+        String.fromEnvironment('FIREBASE_MEASUREMENT_ID', defaultValue: '');
+
+    if (apiKey.isEmpty ||
+        appId.isEmpty ||
+        messagingSenderId.isEmpty ||
+        projectId.isEmpty) {
+      throw UnsupportedError(
+        'Firebase Web configuration variables missing. '
+        'Please provide them via --dart-define.',
+      );
+    }
+
+    return FirebaseOptions(
+      apiKey: apiKey,
+      appId: appId,
+      messagingSenderId: messagingSenderId,
+      projectId: projectId,
+      authDomain: authDomain,
+      storageBucket: storageBucket,
+      measurementId: measurementId,
+    );
+  }
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyBPGPtMey7IARjQE7Wouu5B9Ioyl61h_j0',
