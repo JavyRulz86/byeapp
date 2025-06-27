@@ -9,18 +9,20 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
 
-  # Firebase Core (versión unificada)
+  # Firebase Core
   firebase_core: ^3.14.0
 
-  # Servicios de Firebase (versiones compatibles con core 3.x)
+  # Servicios de Firebase
   firebase_auth: ^5.6.0
   firebase_analytics: ^11.5.0
   cloud_firestore: ^5.6.9
   firebase_storage: ^12.4.7
   firebase_crashlytics: ^4.3.7
 
-  # Autenticación con Google
+  # Autenticación con Google (versiones actualizadas)
   google_sign_in: ^6.3.0
   google_sign_in_web: ^0.12.1
 
@@ -32,7 +34,7 @@ dependencies:
 
   # UI y diseño
   google_fonts: ^6.2.1
-  material_color_utilities: 0.11.1 # Versión exacta requerida por Flutter
+  material_color_utilities: ^0.11.1
 
   # Multimedia
   image_picker: ^1.1.2
@@ -47,13 +49,20 @@ dependencies:
   flutter_dotenv: ^5.1.0
   shared_preferences: ^2.2.2
 
+  # Dependencias adicionales para web
+  js: ^0.6.7
+  universal_html: ^2.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  build_runner: ^2.4.6
 
 flutter:
   uses-material-design: true
   assets:
     - assets/logo.png
     - assets/error_icon.png
+    - web/
+    - .env 

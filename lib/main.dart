@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:goodbye_app/src/screens/login/login_screen.dart';
+import 'firebase_options.dart'; // Asegúrate de que este archivo existe
 
 // Configuración global
 final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
@@ -22,23 +23,18 @@ final Logger logger = Logger(
 
 Future<void> _initializeFirebase() async {
   try {
-    await dotenv.load();
+    await dotenv.load(fileName: ".env");
 
     await Firebase.initializeApp(
-      options: FirebaseOptions(
-        apiKey: dotenv.env['API_KEY']!,
-        appId: dotenv.env['APP_ID']!,
-        messagingSenderId: dotenv.env['SENDER_ID']!,
-        projectId: dotenv.env['PROJECT_ID']!,
-        authDomain: dotenv.env['AUTH_DOMAIN'],
-        storageBucket: dotenv.env['STORAGE_BUCKET'],
-        measurementId: dotenv.env['MEASUREMENT_ID'],
-      ),
+      options:
+          DefaultFirebaseOptions.currentPlatform, // Usa las opciones generadas
     );
 
+    // Configura Crashlytics
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
 
+    // Configura Analytics
     await analytics.setAnalyticsCollectionEnabled(true);
     await analytics.setUserId(id: 'pre_login_user');
     await analytics.setUserProperty(name: 'app_version', value: '1.0.0');
@@ -68,6 +64,7 @@ Future<void> _logAppStart() async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Configuración global de manejo de errores
   FlutterError.onError = (details) {
     logger.e('Error no capturado',
         error: details.exception, stackTrace: details.stack);
@@ -189,7 +186,7 @@ class ErrorApp extends StatelessWidget {
 
   void _sendErrorReport() {
     logger.i('Reporte de error enviado');
-    // Implementar reporte si lo necesitás
+    // Implementar lógica de reporte si es necesario
   }
 }
 
