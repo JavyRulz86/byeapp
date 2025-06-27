@@ -1,17 +1,17 @@
 #!/bin/bash
 
-# Descarga Flutter si no existe
-if [ ! -d "flutter" ]; then
+# Si ya está el SDK en caché, no lo vuelvas a clonar
+if [ ! -d "$HOME/flutter" ]; then
   echo "Clonando Flutter SDK..."
-  git clone https://github.com/flutter/flutter.git -b stable
+  git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
 fi
 
-# Agrega flutter al PATH
-export PATH="$PATH:`pwd`/flutter/bin"
+# Agregar Flutter al PATH
+export PATH="$PATH:$HOME/flutter/bin"
 
-# Asegura que se descargue el entorno necesario
+# Precargar dependencias
 flutter precache
 flutter doctor
 
-# Compila el proyecto Flutter Web
+# Build
 flutter build web
