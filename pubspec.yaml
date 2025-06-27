@@ -65,4 +65,3 @@ flutter:
     - assets/logo.png
     - assets/error_icon.png
     - web/
-    - .env 
