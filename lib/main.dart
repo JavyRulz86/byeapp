@@ -3,7 +3,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:logger/logger.dart';
-// import 'package:flutter_dotenv/flutter_dotenv.dart'; // ELIMINADO
 import 'package:goodbye_app/src/screens/login/login_screen.dart';
 import 'firebase_options.dart'; // Asegúrate de que este archivo existe
 
@@ -23,14 +22,9 @@ final Logger logger = Logger(
 
 Future<void> _initializeFirebase() async {
   try {
-    // Ejemplo: obtener variable con dart-define
-    const firebaseApiKey = String.fromEnvironment('FIREBASE_API_KEY');
-    // Si necesitas usar firebaseApiKey en alguna configuración, acá lo tendrías
-
     await Firebase.initializeApp(
       options:
           DefaultFirebaseOptions.currentPlatform, // Usa las opciones generadas
-      // Si usás opciones personalizadas, puedes inyectar firebaseApiKey aquí
     );
 
     // Configura Crashlytics
